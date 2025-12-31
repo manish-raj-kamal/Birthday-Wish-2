@@ -92,11 +92,20 @@ h3 {
     -webkit-backdrop-filter: blur(8px);
     border-radius: 20px;
     border: 1px solid var(--glass-border);
-    padding: 40px;
+    padding: 20px;
+    /* Reduced padding for mobile */
     box-shadow: var(--shadow);
     max-width: 90%;
     width: 400px;
+    /* Allow scrolling within card if content is too tall */
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     animation: floatCard 6s ease-in-out infinite;
+    /* Ensure content stacks properly */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 @keyframes floatCard {
@@ -334,9 +343,13 @@ h3 {
 /* Memory Game */
 .memory-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 20px;
+    max-width: 300px;
+    /* Constrain width for better 3x3 look */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .memory-card {
@@ -407,7 +420,8 @@ h3 {
 
 /* Cake */
 .cake-container {
-    margin: 60px auto 40px;
+    margin: 130px auto 40px;
+    /* Increased top margin to clear mic button */
     position: relative;
     width: 150px;
     height: 100px;
@@ -609,7 +623,11 @@ canvas {
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-top: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    z-index: 20;
+    /* Ensure clickable */
+    position: relative;
 }
 
 /* Mic Button Active State */
@@ -618,4 +636,40 @@ canvas {
     border-color: #ff6b6b;
     color: white;
     animation: pulse 1s infinite;
+}
+
+/* Bomb Stats */
+.bomb-stats {
+    font-weight: bold;
+    margin: 10px 0;
+    min-height: 24px;
+    color: #ff6b6b;
+}
+
+/* Ensure download link is visible when shown */
+#download-link {
+    display: none;
+    /* Default hidden, JS will set to inline-block */
+    text-decoration: none;
+}
+
+#download-link button {
+    margin-top: 0;
+}
+
+/* Photo Tutorial Text */
+#photo-tutorial {
+    font-size: 1rem;
+    color: var(--text-gold);
+    font-weight: 600;
+    margin: 10px 0;
+    padding: 8px 15px;
+    background: rgba(255, 183, 197, 0.2);
+    border-radius: 20px;
+    text-align: center;
+}
+
+/* Back to Party Button - Always visible */
+#back-to-party-btn {
+    margin: 10px 0 15px 0;
 }
