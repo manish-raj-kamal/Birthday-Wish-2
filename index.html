@@ -132,59 +132,98 @@
             </div>
         </section>
 
-        <!-- Screen 7: Celebration -->
+        <!-- Screen 7: PARTY MODE Celebration -->
         <section id="screen-celebration" class="screen">
-            <div class="content-box glass-card">
-                <h1 class="elegant-title">Happy Birthday!</h1>
-                <h1 class="elegant-name">Sakshi</h1>
-                <p class="wish-paragraph">
-                    Wishing you a year filled with love, laughter, and endless joy.
-                    May all your dreams come true! 💖
-                </p>
-                <div class="gift-box" onclick="toggleGift()">
-                    🎁
-                    <div class="gift-content hidden">
-                        Huge Virtual Hug! 🤗
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="goToScreen('screen-photobooth')">📸 Birthday Selfie!</button>
-                <button class="btn-secondary" onclick="restartApp()">Replay ✨</button>
+            <!-- Disco Lights Background -->
+            <div class="disco-lights">
+                <div class="light-beam beam-1"></div>
+                <div class="light-beam beam-2"></div>
+                <div class="light-beam beam-3"></div>
+                <div class="light-beam beam-4"></div>
+                <div class="light-beam beam-5"></div>
+                <div class="light-beam beam-6"></div>
+                <div class="spotlight spotlight-1"></div>
+                <div class="spotlight spotlight-2"></div>
+                <div class="spotlight spotlight-3"></div>
             </div>
+
+            <!-- Fireworks Animation -->
+            <div class="fireworks-container">
+                <div class="firework firework-1"></div>
+                <div class="firework firework-2"></div>
+                <div class="firework firework-3"></div>
+                <div class="firework firework-4"></div>
+            </div>
+
+            <!-- Flying Neon Emojis Container -->
+            <div id="flying-emojis-container" class="flying-emojis-container"></div>
+
+            <div class="celebration-content">
+                <!-- PARTY TIME! at top -->
+                <div class="mega-dance-text party-time-title">
+                    <span class="mega-letter">P</span>
+                    <span class="mega-letter">A</span>
+                    <span class="mega-letter">R</span>
+                    <span class="mega-letter">T</span>
+                    <span class="mega-letter">Y</span>
+                    <span class="mega-letter"> </span>
+                    <span class="mega-letter">T</span>
+                    <span class="mega-letter">I</span>
+                    <span class="mega-letter">M</span>
+                    <span class="mega-letter">E</span>
+                    <span class="mega-letter">!</span>
+                </div>
+
+                <!-- Sound Control Buttons -->
+                <div class="sound-controls">
+                    <button id="play-birthday-song" class="sound-btn" onclick="playBirthdaySong()">🎵 BIRTHDAY SONG
+                        BAJAO</button>
+                    <button id="stop-song" class="sound-btn" onclick="stopBirthdaySong()" style="display: none;">⏹️ STOP
+                        MUSIC</button>
+                </div>
+
+                <!-- Achievement Badges -->
+                <div class="achievement-badges">
+                    <div class="badge bounce-in">👑 Birthday Queen</div>
+                    <div class="badge bounce-in">💖 Certified Bestie</div>
+                    <div class="badge bounce-in">✨ Memory Master</div>
+                    <div class="badge bounce-in">🕯️ Wish Maker</div>
+                </div>
+
+                <!-- Dancing Name (SAKSHI!) -->
+                <div class="dancing-text dancing-name">
+                    <span class="dance-letter name-letter">S</span>
+                    <span class="dance-letter name-letter">A</span>
+                    <span class="dance-letter name-letter">K</span>
+                    <span class="dance-letter name-letter">S</span>
+                    <span class="dance-letter name-letter">H</span>
+                    <span class="dance-letter name-letter">I</span>
+                    <span class="dance-letter name-letter">!</span>
+                </div>
+
+                <!-- Replay Button -->
+                <button class="btn-primary glow-button replay-btn" onclick="restartApp()">
+                    🔄 NAYI GAME SHURU KARO
+                </button>
+
+                <!-- Now Playing Status -->
+                <div id="now-playing" class="now-playing" style="display: none;">
+                    🎵 Now Playing: Happy Birthday Song 🎵
+                </div>
+
+                <!-- Floating Emojis -->
+                <div class="party-emojis floating-emojis">
+                    🎉💖🎂✨🎈🌟💝🎊🎁💫
+                </div>
+            </div>
+
             <canvas id="confetti-canvas"></canvas>
         </section>
 
-        <!-- Screen 8: Photobooth -->
-        <section id="screen-photobooth" class="screen">
-            <div class="content-box glass-card wide-card">
-                <h2>📸 Birthday Photobooth</h2>
-                <p id="photo-tutorial">Tap "Start Camera" to begin, then "Click" to capture!</p>
-
-                <!-- Controls always visible at the top -->
-                <div class="photo-controls">
-                    <button class="btn-primary" id="start-camera" onclick="startCamera()">📷 Start Camera</button>
-                    <button class="btn-primary" id="take-photo" onclick="takePhoto()" style="display: none;">📸
-                        Click!</button>
-                    <button class="btn-secondary" id="retake-photo" onclick="resetCamera()" style="display: none;">🔄
-                        Retake</button>
-                    <a id="download-link" style="display: none;"><button class="btn-primary">💾 Save Photo</button></a>
-                </div>
-
-                <button class="btn-secondary" id="back-to-party-btn" onclick="goToScreen('screen-celebration')">🎉 Back
-                    to Party</button>
-
-                <div class="camera-container">
-                    <div class="photo-frame">
-                        <video id="camera-feed" autoplay playsinline></video>
-                        <canvas id="photo-canvas" class="hidden"></canvas>
-                        <div class="frame-overlay">
-                            <div class="frame-text-top">Happy Birthday</div>
-                            <div class="frame-text-bottom">Sakshi</div>
-                            <div class="frame-deco">✨</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <!-- Happy Birthday Song Audio -->
+        <audio id="happy-bday-song" preload="auto">
+            <source src="Prince/Happy Bday.mp3" type="audio/mpeg">
+        </audio>
 
     </main>
 
