@@ -43,8 +43,6 @@ function goToScreen(screenId) {
         if (screenId === 'screen-quiz') setupQuiz();
         if (screenId === 'screen-memory') setupMemory();
         if (screenId === 'screen-celebration') startConfetti();
-        // Camera cleanup if leaving photobooth
-        if (screenId !== 'screen-photobooth') stopCamera();
     }
 }
 
@@ -371,147 +369,68 @@ function blowCandle() {
     }
 }
 
-// --- Camera & Photobooth ---
-let videoStream = null;
+// --- Birthday Song Audio Controls ---
+let birthdaySongPlaying = false;
 
-function startCamera() {
-    const video = document.getElementById('camera-feed');
-    const canvas = document.getElementById('photo-canvas');
-    const startBtn = document.getElementById('start-camera');
-    const takeBtn = document.getElementById('take-photo');
-    const retakeBtn = document.getElementById('retake-photo');
-    const downloadLink = document.getElementById('download-link');
-    const tutorial = document.getElementById('photo-tutorial');
+function playBirthdaySong() {
+    const song = document.getElementById('happy-bday-song');
+    const playBtn = document.getElementById('play-birthday-song');
+    const stopBtn = document.getElementById('stop-song');
 
-    // Reset UI
-    video.style.display = 'block';
-    canvas.style.display = 'none';
-    startBtn.style.display = 'none';
-    takeBtn.style.display = 'inline-block';
-    retakeBtn.style.display = 'none';
-    downloadLink.style.display = 'none';
-
-    // Request camera
-    navigator.mediaDevices.getUserMedia({
-        video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            facingMode: "user"
-        }
-    })
-        .then(stream => {
-            videoStream = stream;
-            video.srcObject = stream;
-            if (tutorial) tutorial.textContent = "Strike a pose and tap '📸 Click!' to capture!";
-        })
-        .catch(err => {
-            alert("Camera access denied: " + err.message);
-            // Reset to initial state
-            startBtn.style.display = 'inline-block';
-            takeBtn.style.display = 'none';
+    if (song) {
+        song.play().then(() => {
+            birthdaySongPlaying = true;
+            playBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            playBtn.classList.add('playing');
+        }).catch(err => {
+            console.log("Audio play error:", err);
+            alert("Tap again to play the song!");
         });
-}
-
-function stopCamera() {
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-        videoStream = null;
     }
-    const video = document.getElementById('camera-feed');
-    video.srcObject = null;
 }
 
-function takePhoto() {
-    const video = document.getElementById('camera-feed');
-    const canvas = document.getElementById('photo-canvas');
-    const context = canvas.getContext('2d');
-    const takeBtn = document.getElementById('take-photo');
-    const retakeBtn = document.getElementById('retake-photo');
-    const downloadLink = document.getElementById('download-link');
-    const tutorial = document.getElementById('photo-tutorial');
+function stopBirthdaySong() {
+    const song = document.getElementById('happy-bday-song');
+    const playBtn = document.getElementById('play-birthday-song');
+    const stopBtn = document.getElementById('stop-song');
 
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw video (mirrored)
-    context.translate(canvas.width, 0);
-    context.scale(-1, 1);
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    context.setTransform(1, 0, 0, 1, 0, 0);
-
-    // Dynamic Font Sizing
-    const fontSize = Math.floor(canvas.width / 15);
-    context.font = `bold ${fontSize}px 'Dancing Script'`;
-    context.fillStyle = "white";
-    context.textAlign = "center";
-    context.shadowColor = "rgba(0,0,0,0.5)";
-    context.shadowBlur = canvas.width / 50;
-
-    // Draw overlay text
-    const margin = canvas.height * 0.1;
-    context.fillText("Happy Birthday", canvas.width / 2, margin + fontSize);
-    context.fillText("Sakshi", canvas.width / 2, canvas.height - margin);
-
-    // Add date
-    context.font = `normal ${fontSize / 2}px 'Quicksand'`;
-    context.fillText("01/01/2026", canvas.width / 2, canvas.height - margin + (fontSize / 1.5));
-
-    // STOP camera after taking photo
-    stopCamera();
-
-    // Switch UI
-    video.style.display = 'none';
-    canvas.style.display = 'block';
-    takeBtn.style.display = 'none';
-    retakeBtn.style.display = 'inline-block';
-
-    // Show download button explicitly
-    downloadLink.href = canvas.toDataURL('image/png');
-    downloadLink.download = 'sakshi_birthday_selfie.png';
-    downloadLink.style.display = 'inline-block';
-
-    if (tutorial) tutorial.textContent = "✨ Perfect! Tap '💾 Save Photo' to download!";
+    if (song) {
+        song.pause();
+        song.currentTime = 0;
+        birthdaySongPlaying = false;
+        playBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+        playBtn.classList.remove('playing');
+    }
 }
 
-function resetCamera() {
-    const video = document.getElementById('camera-feed');
-    const canvas = document.getElementById('photo-canvas');
-    const takeBtn = document.getElementById('take-photo');
-    const retakeBtn = document.getElementById('retake-photo');
-    const downloadLink = document.getElementById('download-link');
-    const tutorial = document.getElementById('photo-tutorial');
 
-    // Hide canvas, show video
-    canvas.style.display = 'none';
-    video.style.display = 'block';
+// --- Celebration (Party Mode) ---
+let flyingEmojiInterval = null;
 
-    // Swap buttons
-    takeBtn.style.display = 'inline-block';
-    retakeBtn.style.display = 'none';
-    downloadLink.style.display = 'none';
-
-    if (tutorial) tutorial.textContent = "Strike a pose and tap '📸 Click!' to capture!";
-
-    // Restart camera
-    navigator.mediaDevices.getUserMedia({
-        video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            facingMode: "user"
-        }
-    })
-        .then(stream => {
-            videoStream = stream;
-            video.srcObject = stream;
-        })
-        .catch(err => {
-            alert("Camera access denied: " + err.message);
-        });
-}
-
-// --- Celebration (Simple Canvas Confetti) ---
 function startConfetti() {
+    // Stop background music and play birthday song
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        isMusicPlaying = false;
+        musicBtn.classList.remove('music-rotating');
+    }
+
+    // Auto-play birthday song
+    const bdaySong = document.getElementById('happy-bday-song');
+    const nowPlaying = document.getElementById('now-playing');
+    if (bdaySong) {
+        bdaySong.play().then(() => {
+            if (nowPlaying) nowPlaying.style.display = 'block';
+        }).catch(err => console.log("Auto-play blocked, tap button to play"));
+    }
+
+    // Start flying neon emojis
+    startFlyingEmojis();
+
+    // Confetti canvas animation
     const canvas = document.getElementById('confetti-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -554,5 +473,79 @@ function toggleGift() {
 }
 
 function restartApp() {
+    // Stop flying emojis
+    if (flyingEmojiInterval) {
+        clearInterval(flyingEmojiInterval);
+        flyingEmojiInterval = null;
+    }
+    // Stop birthday song
+    const bdaySong = document.getElementById('happy-bday-song');
+    if (bdaySong) {
+        bdaySong.pause();
+        bdaySong.currentTime = 0;
+    }
     location.reload();
+}
+
+// --- Flying Neon Emojis ---
+const partyEmojis = [
+    '🎉', '🎊', '🎈', '🎁', '🎂', '🍰', '🥳', '🎵', '🎶', '🎤',
+    '🕶️', '💖', '💜', '💙', '💚', '💛', '🧡', '❤️', '✨', '⭐',
+    '🌟', '💫', '🔥', '🎀', '👑', '💎', '🦋', '🌈', '🍾', '🥂'
+];
+
+const neonColors = ['neon-pink', 'neon-cyan', 'neon-yellow', 'neon-green', 'neon-orange'];
+const flyAnimations = ['flyLeftToRight', 'flyRightToLeft', 'flyWavy'];
+
+function startFlyingEmojis() {
+    const container = document.getElementById('flying-emojis-container');
+    if (!container) return;
+
+    // Clear existing emojis
+    container.innerHTML = '';
+
+    // Spawn emojis periodically
+    flyingEmojiInterval = setInterval(() => {
+        spawnFlyingEmoji(container);
+    }, 400); // New emoji every 400ms
+
+    // Initial burst of emojis
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => spawnFlyingEmoji(container), i * 150);
+    }
+}
+
+function spawnFlyingEmoji(container) {
+    const emoji = document.createElement('span');
+    emoji.className = 'flying-emoji';
+
+    // Random emoji
+    emoji.textContent = partyEmojis[Math.floor(Math.random() * partyEmojis.length)];
+
+    // Random neon color
+    emoji.classList.add(neonColors[Math.floor(Math.random() * neonColors.length)]);
+
+    // Random animation
+    const animation = flyAnimations[Math.floor(Math.random() * flyAnimations.length)];
+    const duration = 4 + Math.random() * 4; // 4-8 seconds
+
+    // Random vertical position
+    const topPos = 10 + Math.random() * 70; // 10% to 80% from top
+    emoji.style.top = topPos + '%';
+
+    // Random size
+    const size = 1.5 + Math.random() * 1.5; // 1.5rem to 3rem
+    emoji.style.fontSize = size + 'rem';
+
+    // Apply animation
+    emoji.style.animation = `${animation} ${duration}s linear forwards`;
+
+    container.appendChild(emoji);
+
+    // Remove after animation
+    setTimeout(() => {
+        if (emoji.parentNode) {
+            emoji.remove();
+        }
+    }, duration * 1000 + 100);
 }
