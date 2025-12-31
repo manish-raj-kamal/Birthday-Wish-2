@@ -261,61 +261,110 @@ function checkMatch() {
 }
 
 // --- Candle Wishes (With Mic!) ---
-let audioContext;
-let microphone;
-let analyser;
+let audioContext = null;
+let microphone = null;
+let analyser = null;
+let micStream = null;
 let micEnabled = false;
 
 function toggleMic() {
-    if (!micEnabled) {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(function (stream) {
-                document.getElementById('mic-btn').textContent = "🎤 Listening...";
-                document.getElementById('mic-btn').classList.add('listening');
-                micEnabled = true;
+    const micBtn = document.getElementById('mic-btn');
 
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                microphone = audioContext.createMediaStreamSource(stream);
-                microphone.connect(analyser);
-                analyser.fftSize = 256;
-
-                checkBlow();
-            })
-            .catch(function (err) {
-                alert("Microphone access needed to blow the candle! Tap it instead if it fails.");
-                console.log(err);
-            });
+    if (micEnabled) {
+        // Turn off mic
+        stopMic();
+        return;
     }
+
+    micBtn.textContent = "⏳ Starting...";
+
+    // Request microphone access
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(function (stream) {
+            micStream = stream;
+
+            // Create AudioContext (with iOS/Safari support)
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Resume AudioContext (required for iOS Safari)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.3;
+
+            microphone = audioContext.createMediaStreamSource(stream);
+            microphone.connect(analyser);
+
+            micEnabled = true;
+            micBtn.textContent = "🎤 Blow Now!";
+            micBtn.classList.add('listening');
+
+            // Start checking for blow
+            checkBlow();
+        })
+        .catch(function (err) {
+            console.error("Mic error:", err);
+            micBtn.textContent = "🎙️ Enable Mic";
+            alert("Microphone access needed! You can also tap the flame to blow out the candle.");
+        });
+}
+
+function stopMic() {
+    micEnabled = false;
+
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+    }
+
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+
+    const micBtn = document.getElementById('mic-btn');
+    micBtn.textContent = "🎙️ Enable Mic";
+    micBtn.classList.remove('listening');
 }
 
 function checkBlow() {
+    if (!micEnabled || !analyser) return;
+
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     analyser.getByteFrequencyData(dataArray);
 
+    // Calculate average volume
     let sum = 0;
     for (let i = 0; i < bufferLength; i++) {
         sum += dataArray[i];
     }
     let average = sum / bufferLength;
 
-    // Increased threshold/sensitivity (was 50)
-    if (average > 80) {
+    // Lower threshold for mobile (phone mics are sensitive)
+    // 40 for phones, 80 was too high
+    if (average > 40) {
+        console.log("Blow detected! Level:", average);
         blowCandle();
-        // Stop listening
-        micEnabled = false;
-        document.getElementById('mic-btn').classList.remove('listening');
-        document.getElementById('mic-btn').textContent = "🎙️ Mic Disabled";
+        stopMic();
     } else {
-        if (micEnabled) requestAnimationFrame(checkBlow);
+        if (micEnabled) {
+            requestAnimationFrame(checkBlow);
+        }
     }
 }
 
 function blowCandle() {
     const flame = document.getElementById('flame');
-    if (!flame.classList.contains('out')) {
+    if (flame && !flame.classList.contains('out')) {
         flame.classList.add('out');
+
+        // Stop mic if still on
+        stopMic();
+
         setTimeout(() => {
             document.getElementById('wish-success').classList.remove('hidden');
         }, 500);
@@ -406,7 +455,7 @@ function takePhoto() {
 
     // Add date
     context.font = `normal ${fontSize / 2}px 'Quicksand'`;
-    context.fillText(new Date().toLocaleDateString(), canvas.width / 2, canvas.height - margin + (fontSize / 1.5));
+    context.fillText("01/01/2026", canvas.width / 2, canvas.height - margin + (fontSize / 1.5));
 
     // STOP camera after taking photo
     stopCamera();
