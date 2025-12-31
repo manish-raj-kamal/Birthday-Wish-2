@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sakshi! ✨</title>
+    <link rel="stylesheet" href="styles2.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500;600&family=Dancing+Script:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Audio Element -->
+    <audio id="bg-music" loop>
+        <source src="Happy Birthday To You Song Remix DJ.m4a" type="audio/mp4">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="music-control" id="music-btn">
+        <span>🎵</span>
+    </div>
+
+    <!-- Container -->
+    <main id="app">
+
+        <!-- Screen 1: Landing -->
+        <section id="screen-landing" class="screen active">
+            <div class="floating-elements">
+                <div class="balloon b1">🎈</div>
+                <div class="balloon b2">✨</div>
+                <div class="balloon b3">🎈</div>
+                <div class="balloon b4">💖</div>
+            </div>
+
+            <div class="content-box glass-card fade-in">
+                <h1 class="elegant-title">Happy Birthday</h1>
+                <h1 class="elegant-name">Sakshi</h1>
+                <div class="separator-line"></div>
+                <p class="subtitle">It's your special day! ✨</p>
+                <button class="btn-primary pulse" onclick="goToScreen('screen-vibe')">Let's Celebrate! 🎁</button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Vibe Check -->
+        <section id="screen-vibe" class="screen">
+            <div class="content-box glass-card">
+                <h2>✨ Vibe Check ✨</h2>
+                <div class="scanner-container">
+                    <div class="scanner-circle">
+                        <div class="scanner-line"></div>
+                        <span id="scanner-emoji">🧐</span>
+                    </div>
+                    <p id="scanner-status">Scanning Sakshi's aura...</p>
+                </div>
+                <div id="vibe-result" class="hidden">
+                    <h3 class="gold-text">Result: 100% QUEEN 👑</h3>
+                    <p>Elegance: Infinite | Charm: Max | Sass: Perfect amount</p>
+                    <button class="btn-primary hidden" id="vibe-next-btn" onclick="goToScreen('screen-balloons')">Pop
+                        Some Balloons! 🎈</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 3: Balloon Pop -->
+        <section id="screen-balloons" class="screen">
+            <h2>Pop the Balloons! 🎈</h2>
+            <p class="instruction">Find the hidden surprise!</p>
+            <div class="balloon-grid" id="balloon-grid">
+                <!-- Balloons injected via JS -->
+            </div>
+            <div id="balloon-message" class="hidden glass-card mini-card">
+                <h3>You found it! 🎁</h3>
+                <p>"May your year be as bright as your smile!"</p>
+                <button class="btn-primary" onclick="goToScreen('screen-quiz')">Next Surprise ➡️</button>
+            </div>
+        </section>
+
+        <!-- Screen 4: Bestie Quiz -->
+        <section id="screen-quiz" class="screen">
+            <div class="content-box glass-card">
+                <h2>👑 Bestie Quiz 👑</h2>
+                <div class="quiz-container">
+                    <div class="question-box">
+                        <h3 id="quiz-q">Question Text</h3>
+                    </div>
+                    <div class="options-box" id="quiz-options">
+                        <!-- Options injected via JS -->
+                    </div>
+                    <p id="quiz-feedback" class="feedback-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 5: Memory Match -->
+        <section id="screen-memory" class="screen">
+            <h2>✨ Memory Match ✨</h2>
+            <p class="instruction">Match the cute icons!</p>
+            <div class="memory-grid" id="memory-grid">
+                <!-- Cards injected via JS -->
+            </div>
+            <div id="memory-success" class="hidden glass-card mini-card">
+                <h3>Matched! 🌟</h3>
+                <button class="btn-primary" onclick="goToScreen('screen-wishes')">Make a Wish! 🕯️</button>
+            </div>
+        </section>
+
+        <!-- Screen 6: Wishes (Candle) -->
+        <section id="screen-wishes" class="screen">
+            <div class="content-box glass-card">
+                <h2>Make a Wish! 🎂</h2>
+                <p>Close your eyes, make a wish, and blow into the mic (or tap)!</p>
+
+                <button class="btn-secondary" id="mic-btn" onclick="toggleMic()">🎙️ Enable Mic</button>
+
+                <div class="cake-container">
+                    <div class="cake">
+                        <div class="icing"></div>
+                        <div class="candle">
+                            <div class="flame" id="flame" onclick="blowCandle()"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wish-success" class="hidden">
+                    <h3 class="gold-text">Wish Granted! ✨</h3>
+                    <button class="btn-primary" onclick="goToScreen('screen-celebration')">Party Time! 🎉</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 7: Celebration -->
+        <section id="screen-celebration" class="screen">
+            <div class="content-box glass-card">
+                <h1 class="elegant-title">Happy Birthday!</h1>
+                <h1 class="elegant-name">Sakshi</h1>
+                <p class="wish-paragraph">
+                    Wishing you a year filled with love, laughter, and endless joy.
+                    May all your dreams come true! 💖
+                </p>
+                <div class="gift-box" onclick="toggleGift()">
+                    🎁
+                    <div class="gift-content hidden">
+                        Huge Virtual Hug! 🤗
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="goToScreen('screen-photobooth')">📸 Birthday Selfie!</button>
+                <button class="btn-secondary" onclick="restartApp()">Replay ✨</button>
+            </div>
+            <canvas id="confetti-canvas"></canvas>
+        </section>
+
+        <!-- Screen 8: Photobooth -->
+        <section id="screen-photobooth" class="screen">
+            <div class="content-box glass-card wide-card">
+                <h2>📸 Birthday Photobooth</h2>
+
+                <div class="camera-container">
+                    <div class="photo-frame">
+                        <video id="camera-feed" autoplay playsinline></video>
+                        <canvas id="photo-canvas" class="hidden"></canvas>
+                        <div class="frame-overlay">
+                            <div class="frame-text-top">Happy Birthday</div>
+                            <div class="frame-text-bottom">Sakshi</div>
+                            <div class="frame-deco">✨</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="photo-controls">
+                    <button class="btn-primary" id="start-camera" onclick="startCamera()">Start Camera</button>
+                    <button class="btn-primary hidden" id="take-photo" onclick="takePhoto()">Click! 📸</button>
+                    <button class="btn-secondary hidden" id="retake-photo" onclick="resetCamera()">Retake</button>
+                    <a id="download-link" class="hidden"><button class="btn-primary">Download ⬇️</button></a>
+                </div>
+                <button class="btn-secondary" onclick="goToScreen('screen-celebration')">Back to Party</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script2.js"></script>
+</body>
+
+</html>
