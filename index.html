@@ -98,6 +98,7 @@
         <section id="screen-memory" class="screen">
             <h2>✨ Memory Match ✨</h2>
             <p class="instruction">Match the cute icons!</p>
+            <div id="bomb-stats" class="bomb-stats"></div>
             <div class="memory-grid" id="memory-grid">
                 <!-- Cards injected via JS -->
             </div>
@@ -156,6 +157,20 @@
         <section id="screen-photobooth" class="screen">
             <div class="content-box glass-card wide-card">
                 <h2>📸 Birthday Photobooth</h2>
+                <p id="photo-tutorial">Tap "Start Camera" to begin, then "Click" to capture!</p>
+
+                <!-- Controls always visible at the top -->
+                <div class="photo-controls">
+                    <button class="btn-primary" id="start-camera" onclick="startCamera()">📷 Start Camera</button>
+                    <button class="btn-primary" id="take-photo" onclick="takePhoto()" style="display: none;">📸
+                        Click!</button>
+                    <button class="btn-secondary" id="retake-photo" onclick="resetCamera()" style="display: none;">🔄
+                        Retake</button>
+                    <a id="download-link" style="display: none;"><button class="btn-primary">💾 Save Photo</button></a>
+                </div>
+
+                <button class="btn-secondary" id="back-to-party-btn" onclick="goToScreen('screen-celebration')">🎉 Back
+                    to Party</button>
 
                 <div class="camera-container">
                     <div class="photo-frame">
@@ -168,14 +183,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="photo-controls">
-                    <button class="btn-primary" id="start-camera" onclick="startCamera()">Start Camera</button>
-                    <button class="btn-primary hidden" id="take-photo" onclick="takePhoto()">Click! 📸</button>
-                    <button class="btn-secondary hidden" id="retake-photo" onclick="resetCamera()">Retake</button>
-                    <a id="download-link" class="hidden"><button class="btn-primary">Download ⬇️</button></a>
-                </div>
-                <button class="btn-secondary" onclick="goToScreen('screen-celebration')">Back to Party</button>
             </div>
         </section>
 
