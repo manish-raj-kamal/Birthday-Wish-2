@@ -376,16 +376,28 @@ function playBirthdaySong() {
     const song = document.getElementById('happy-bday-song');
     const playBtn = document.getElementById('play-birthday-song');
     const stopBtn = document.getElementById('stop-song');
+    const nowPlaying = document.getElementById('now-playing');
+
+    // STRICTLY STOP ALL OTHER MUSIC
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        isMusicPlaying = false;
+        if (musicBtn) musicBtn.classList.remove('music-rotating');
+    }
 
     if (song) {
+        // Reset the song to start from beginning
+        song.currentTime = 0;
+
         song.play().then(() => {
             birthdaySongPlaying = true;
-            playBtn.style.display = 'none';
-            stopBtn.style.display = 'inline-block';
-            playBtn.classList.add('playing');
+            if (playBtn) playBtn.style.display = 'none';
+            if (stopBtn) stopBtn.style.display = 'inline-block';
+            if (nowPlaying) nowPlaying.style.display = 'block';
         }).catch(err => {
             console.log("Audio play error:", err);
-            alert("Tap again to play the song!");
+            alert("Tap the button again to play the song!");
         });
     }
 }
@@ -394,14 +406,16 @@ function stopBirthdaySong() {
     const song = document.getElementById('happy-bday-song');
     const playBtn = document.getElementById('play-birthday-song');
     const stopBtn = document.getElementById('stop-song');
+    const nowPlaying = document.getElementById('now-playing');
 
     if (song) {
         song.pause();
         song.currentTime = 0;
         birthdaySongPlaying = false;
-        playBtn.style.display = 'inline-block';
-        stopBtn.style.display = 'none';
-        playBtn.classList.remove('playing');
+        if (playBtn) playBtn.style.display = 'inline-block';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (playBtn) playBtn.classList.remove('playing');
+        if (nowPlaying) nowPlaying.style.display = 'none';
     }
 }
 
@@ -410,20 +424,30 @@ function stopBirthdaySong() {
 let flyingEmojiInterval = null;
 
 function startConfetti() {
-    // Stop background music and play birthday song
+    // STRICTLY STOP ALL PREVIOUS MUSIC
     if (bgMusic) {
         bgMusic.pause();
         bgMusic.currentTime = 0;
         isMusicPlaying = false;
-        musicBtn.classList.remove('music-rotating');
+        if (musicBtn) musicBtn.classList.remove('music-rotating');
     }
 
     // Auto-play birthday song
     const bdaySong = document.getElementById('happy-bday-song');
     const nowPlaying = document.getElementById('now-playing');
+    const playBtn = document.getElementById('play-birthday-song');
+    const stopBtn = document.getElementById('stop-song');
+
     if (bdaySong) {
+        // Reset to start
+        bdaySong.currentTime = 0;
+
         bdaySong.play().then(() => {
             if (nowPlaying) nowPlaying.style.display = 'block';
+            // Update buttons state
+            if (playBtn) playBtn.style.display = 'none';
+            if (stopBtn) stopBtn.style.display = 'inline-block';
+            birthdaySongPlaying = true;
         }).catch(err => console.log("Auto-play blocked, tap button to play"));
     }
 
@@ -486,66 +510,131 @@ function restartApp() {
     }
     location.reload();
 }
-
-// --- Flying Neon Emojis ---
-const partyEmojis = [
-    '🎉', '🎊', '🎈', '🎁', '🎂', '🍰', '🥳', '🎵', '🎶', '🎤',
-    '🕶️', '💖', '💜', '💙', '💚', '💛', '🧡', '❤️', '✨', '⭐',
-    '🌟', '💫', '🔥', '🎀', '👑', '💎', '🦋', '🌈', '🍾', '🥂'
+// --- Dancing Characters (copied from Prince implementation) ---
+// Party emojis with disco colors
+const dancingEmojis = [
+    // Party essentials
+    '🎉', '🎊', '🎈', '🎁', '🎂', '🍰', '🥳', '🪩',
+    // Music & Sound
+    '🎵', '🎶', '🎤', '🎧', '🎷', '🎸', '📢',
+    // Neon Glasses & Cool
+    '🕶️', '😎', '🤩', '🌟', '⭐', '✨', '💫', '🔥',
+    // Hearts & Love
+    '💖', '💜', '💙', '💚', '💛', '🧡', '❤️', '💕', '💗',
+    // Celebration
+    '🎀', '👑', '💎', '🦋', '🌈', '🍾', '🥂', '🎪',
+    // Faces
+    '😀', '😃', '😄', '😁', '🥰', '😍', '😘', '😋', '😜', '🤗'
 ];
 
-const neonColors = ['neon-pink', 'neon-cyan', 'neon-yellow', 'neon-green', 'neon-orange'];
-const flyAnimations = ['flyLeftToRight', 'flyRightToLeft', 'flyWavy'];
+// Disco color palette from Prince
+const discoColors = [
+    '#ff0080', '#ff8000', '#80ff00', '#0080ff', '#8000ff',
+    '#ff0040', '#40ff00', '#0040ff', '#ff4080', '#4080ff',
+    '#ffff00', '#ff00ff', '#00ffff', '#ff6600', '#6600ff'
+];
+
+// Animation types from Prince
+const danceAnimations = ['slideLeftToRight', 'slideRightToLeft', 'popAndDance', 'bounceInOut'];
+
+let dancingCharacterInterval = null;
 
 function startFlyingEmojis() {
     const container = document.getElementById('flying-emojis-container');
     if (!container) return;
 
-    // Clear existing emojis
+    // Clear existing
     container.innerHTML = '';
 
-    // Spawn emojis periodically
-    flyingEmojiInterval = setInterval(() => {
-        spawnFlyingEmoji(container);
-    }, 400); // New emoji every 400ms
+    // Spawn characters on beat interval (400ms for ABCD2 song tempo)
+    dancingCharacterInterval = setInterval(() => {
+        // 60% chance to spawn on each beat
+        if (Math.random() < 0.6) {
+            spawnDancingCharacter(container);
+        }
+    }, 400);
 
-    // Initial burst of emojis
-    for (let i = 0; i < 8; i++) {
-        setTimeout(() => spawnFlyingEmoji(container), i * 150);
+    // Initial burst
+    for (let i = 0; i < 6; i++) {
+        setTimeout(() => spawnDancingCharacter(container), i * 150);
     }
 }
 
-function spawnFlyingEmoji(container) {
-    const emoji = document.createElement('span');
-    emoji.className = 'flying-emoji';
+function spawnDancingCharacter(container) {
+    const character = document.createElement('div');
+    character.className = 'dancing-character';
 
     // Random emoji
-    emoji.textContent = partyEmojis[Math.floor(Math.random() * partyEmojis.length)];
+    const emoji = dancingEmojis[Math.floor(Math.random() * dancingEmojis.length)];
+    character.textContent = emoji;
 
-    // Random neon color
-    emoji.classList.add(neonColors[Math.floor(Math.random() * neonColors.length)]);
+    // Random disco color
+    const color = discoColors[Math.floor(Math.random() * discoColors.length)];
 
-    // Random animation
-    const animation = flyAnimations[Math.floor(Math.random() * flyAnimations.length)];
-    const duration = 4 + Math.random() * 4; // 4-8 seconds
+    // Random size (24-44px)
+    const fontSize = Math.random() * 20 + 24;
 
-    // Random vertical position
-    const topPos = 10 + Math.random() * 70; // 10% to 80% from top
-    emoji.style.top = topPos + '%';
+    // Random animation type
+    const animationType = Math.floor(Math.random() * danceAnimations.length);
+    const animationName = danceAnimations[animationType];
 
-    // Random size
-    const size = 1.5 + Math.random() * 1.5; // 1.5rem to 3rem
-    emoji.style.fontSize = size + 'rem';
+    // Random starting position (15% to 85% from top)
+    const startY = Math.random() * 70 + 15;
 
-    // Apply animation
-    emoji.style.animation = `${animation} ${duration}s linear forwards`;
+    // Duration 1.5-3.5 seconds for fast movement
+    const duration = Math.random() * 2 + 1.5;
 
-    container.appendChild(emoji);
+    // Add sparkle effect randomly (30% chance)
+    const hasSparkle = Math.random() < 0.3;
+    const sparkleEffect = hasSparkle ? `, sparkle ${duration * 0.5}s ease-in-out infinite` : '';
+
+    // Apply styles
+    character.style.cssText = `
+        position: absolute;
+        font-size: ${fontSize}px;
+        font-weight: bold;
+        color: ${color};
+        text-shadow: 
+            0 0 10px ${color},
+            0 0 20px ${color},
+            0 0 30px ${color};
+        top: ${startY}%;
+        animation: ${animationName} ${duration}s ease-in-out${sparkleEffect};
+        z-index: 2;
+        pointer-events: none;
+        filter: drop-shadow(0 0 5px ${color});
+        user-select: none;
+        will-change: transform;
+    `;
+
+    // Set initial position based on animation type
+    if (animationName === 'slideLeftToRight') {
+        character.style.left = '-100px';
+    } else if (animationName === 'slideRightToLeft') {
+        character.style.right = '-100px';
+    } else {
+        // popAndDance or bounceInOut - random position
+        character.style.left = Math.random() * 80 + 10 + '%';
+    }
+
+    container.appendChild(character);
 
     // Remove after animation
     setTimeout(() => {
-        if (emoji.parentNode) {
-            emoji.remove();
+        if (character.parentNode) {
+            character.remove();
         }
-    }, duration * 1000 + 100);
+    }, duration * 1000 + 500);
 }
+
+function stopFlyingEmojis() {
+    if (dancingCharacterInterval) {
+        clearInterval(dancingCharacterInterval);
+        dancingCharacterInterval = null;
+    }
+    if (flyingEmojiInterval) {
+        clearInterval(flyingEmojiInterval);
+        flyingEmojiInterval = null;
+    }
+}
+
