@@ -160,19 +160,32 @@ function handleAnswer(selected, correct) {
 }
 
 // --- Memory Game ---
-let cards = ['👑', '👑', '💖', '💖', '🌟', '🌟', '🧁', '🧁'];
+let cards = [];
 let opened = [];
 let matched = 0;
+let bombClicks = 0;
 
 function setupMemory() {
     const grid = document.getElementById('memory-grid');
     if (!grid) return;
     grid.innerHTML = '';
     matched = 0;
+    bombClicks = 0;
+    opened = [];
 
-    cards.sort(() => 0.5 - Math.random());
+    // Reset UI
+    const stats = document.getElementById('bomb-stats');
+    if (stats) {
+        stats.textContent = "Avoid the Bomb! 💣";
+        stats.style.color = "#d4af37";
+    }
+    document.getElementById('memory-success').classList.add('hidden');
 
-    cards.forEach((symbol, idx) => {
+    // 4 Pairs + 1 Bomb
+    const symbols = ['👑', '👑', '💖', '💖', '🌟', '🌟', '🧁', '🧁', '💣'];
+    symbols.sort(() => 0.5 - Math.random());
+
+    symbols.forEach((symbol, idx) => {
         const card = document.createElement('div');
         card.className = 'memory-card';
         card.dataset.symbol = symbol;
@@ -186,8 +199,42 @@ function setupMemory() {
 }
 
 function flipCard(card) {
+    // Prevent interaction if already flipped or matched or 2 cards open
     if (opened.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
 
+    // Bomb Logic
+    if (card.dataset.symbol === '💣') {
+        card.classList.add('flipped');
+        bombClicks++;
+
+        const stats = document.getElementById('bomb-stats');
+
+        if (bombClicks === 1) {
+            // First hit warning
+            if (stats) {
+                stats.textContent = "⚠️ Bomb Hit: 1/2! Careful!";
+                stats.style.color = "orange";
+            }
+            setTimeout(() => {
+                card.classList.remove('flipped');
+            }, 800);
+        } else if (bombClicks >= 2) {
+            // Second hit - Game Over
+            if (stats) {
+                stats.textContent = "💥 BOOM! Game Over! Restarting...";
+                stats.style.color = "red";
+            }
+            // Prevent further clicks
+            document.querySelectorAll('.memory-card').forEach(c => c.style.pointerEvents = 'none');
+
+            setTimeout(() => {
+                setupMemory(); // Reset game
+            }, 2000);
+        }
+        return;
+    }
+
+    // Normal Card Logic
     card.classList.add('flipped');
     opened.push(card);
 
@@ -202,7 +249,8 @@ function checkMatch() {
         c1.classList.add('matched');
         c2.classList.add('matched');
         matched++;
-        if (matched === cards.length / 2) {
+        // Win with 4 pairs (since there are 9 cards total, 4 pairs = win)
+        if (matched === 4) {
             document.getElementById('memory-success').classList.remove('hidden');
         }
     } else {
@@ -275,45 +323,63 @@ function blowCandle() {
 }
 
 // --- Camera & Photobooth ---
-let videoStream;
+let videoStream = null;
 
 function startCamera() {
     const video = document.getElementById('camera-feed');
+    const canvas = document.getElementById('photo-canvas');
     const startBtn = document.getElementById('start-camera');
     const takeBtn = document.getElementById('take-photo');
+    const retakeBtn = document.getElementById('retake-photo');
+    const downloadLink = document.getElementById('download-link');
+    const tutorial = document.getElementById('photo-tutorial');
 
-    // Request highest possible resolution
+    // Reset UI
+    video.style.display = 'block';
+    canvas.style.display = 'none';
+    startBtn.style.display = 'none';
+    takeBtn.style.display = 'inline-block';
+    retakeBtn.style.display = 'none';
+    downloadLink.style.display = 'none';
+
+    // Request camera
     navigator.mediaDevices.getUserMedia({
         video: {
-            width: { ideal: 4096 },
-            height: { ideal: 2160 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
             facingMode: "user"
         }
     })
         .then(stream => {
             videoStream = stream;
             video.srcObject = stream;
-            video.classList.remove('hidden');
-            document.getElementById('photo-canvas').classList.add('hidden');
-
-            startBtn.classList.add('hidden');
-            takeBtn.classList.remove('hidden');
+            if (tutorial) tutorial.textContent = "Strike a pose and tap '📸 Click!' to capture!";
         })
         .catch(err => {
-            alert("Camera access denied or error: " + err);
+            alert("Camera access denied: " + err.message);
+            // Reset to initial state
+            startBtn.style.display = 'inline-block';
+            takeBtn.style.display = 'none';
         });
 }
 
 function stopCamera() {
     if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
     }
+    const video = document.getElementById('camera-feed');
+    video.srcObject = null;
 }
 
 function takePhoto() {
     const video = document.getElementById('camera-feed');
     const canvas = document.getElementById('photo-canvas');
     const context = canvas.getContext('2d');
+    const takeBtn = document.getElementById('take-photo');
+    const retakeBtn = document.getElementById('retake-photo');
+    const downloadLink = document.getElementById('download-link');
+    const tutorial = document.getElementById('photo-tutorial');
 
     // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
@@ -323,9 +389,9 @@ function takePhoto() {
     context.translate(canvas.width, 0);
     context.scale(-1, 1);
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    context.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+    context.setTransform(1, 0, 0, 1, 0, 0);
 
-    // Dynamic Font Sizing based on resolution
+    // Dynamic Font Sizing
     const fontSize = Math.floor(canvas.width / 15);
     context.font = `bold ${fontSize}px 'Dancing Script'`;
     context.fillStyle = "white";
@@ -333,35 +399,66 @@ function takePhoto() {
     context.shadowColor = "rgba(0,0,0,0.5)";
     context.shadowBlur = canvas.width / 50;
 
-    // Draw Text with better positioning
+    // Draw overlay text
     const margin = canvas.height * 0.1;
     context.fillText("Happy Birthday", canvas.width / 2, margin + fontSize);
     context.fillText("Sakshi", canvas.width / 2, canvas.height - margin);
 
-    // Add Date nicely
+    // Add date
     context.font = `normal ${fontSize / 2}px 'Quicksand'`;
     context.fillText(new Date().toLocaleDateString(), canvas.width / 2, canvas.height - margin + (fontSize / 1.5));
 
-    // Switch to canvas view
-    video.classList.add('hidden');
-    canvas.classList.remove('hidden');
+    // STOP camera after taking photo
+    stopCamera();
 
-    document.getElementById('take-photo').classList.add('hidden');
-    document.getElementById('retake-photo').classList.remove('hidden');
+    // Switch UI
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    takeBtn.style.display = 'none';
+    retakeBtn.style.display = 'inline-block';
 
-    // Prepare download
-    const link = document.getElementById('download-link');
-    link.href = canvas.toDataURL('image/png');
-    link.download = 'birthday_selfie.png';
-    link.classList.remove('hidden');
+    // Show download button explicitly
+    downloadLink.href = canvas.toDataURL('image/png');
+    downloadLink.download = 'sakshi_birthday_selfie.png';
+    downloadLink.style.display = 'inline-block';
+
+    if (tutorial) tutorial.textContent = "✨ Perfect! Tap '💾 Save Photo' to download!";
 }
 
 function resetCamera() {
-    document.getElementById('camera-feed').classList.remove('hidden');
-    document.getElementById('photo-canvas').classList.add('hidden');
-    document.getElementById('take-photo').classList.remove('hidden');
-    document.getElementById('retake-photo').classList.add('hidden');
-    document.getElementById('download-link').classList.add('hidden');
+    const video = document.getElementById('camera-feed');
+    const canvas = document.getElementById('photo-canvas');
+    const takeBtn = document.getElementById('take-photo');
+    const retakeBtn = document.getElementById('retake-photo');
+    const downloadLink = document.getElementById('download-link');
+    const tutorial = document.getElementById('photo-tutorial');
+
+    // Hide canvas, show video
+    canvas.style.display = 'none';
+    video.style.display = 'block';
+
+    // Swap buttons
+    takeBtn.style.display = 'inline-block';
+    retakeBtn.style.display = 'none';
+    downloadLink.style.display = 'none';
+
+    if (tutorial) tutorial.textContent = "Strike a pose and tap '📸 Click!' to capture!";
+
+    // Restart camera
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            facingMode: "user"
+        }
+    })
+        .then(stream => {
+            videoStream = stream;
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            alert("Camera access denied: " + err.message);
+        });
 }
 
 // --- Celebration (Simple Canvas Confetti) ---
